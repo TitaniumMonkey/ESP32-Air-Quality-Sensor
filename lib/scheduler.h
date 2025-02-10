@@ -9,13 +9,19 @@
 #include "lib/oled_display.h"
 #include "lib/enhanced_aqi.h"
 
+#define OLED_TIMEOUT 300000  // 5 minutes timeout in milliseconds
+#define BOOT_BUTTON_PIN 0    // ESP32 Boot Button (GPIO 0)
+
+void IRAM_ATTR handleButtonPress(); // Declare ISR function before use
+
 class Scheduler {
 private:
-    static float temperatureF, humidity, pressure;
+    static float temperatureF, humidity, pressure, gas_resistance;
     static int co2, pm1_0, pm2_5, pm10, aqi, enhanced_aqi;
-    static unsigned long lastOLEDUpdate, lastSerialUpdate, lastMQTTUpdate;
+    static unsigned long lastOLEDUpdate, lastSerialUpdate, lastMQTTUpdate, oledTimer;
+    static bool oledOn;
+    static volatile bool oledToggleRequested;
 
-    // Function to calculate AQI based on EPA standards
     static int calculateAQI(int pm2_5, int pm10) {
         const int pm25Breakpoints[] = {0, 12, 35, 55, 150, 250, 500};
         const int pm25AQIValues[]   = {0, 50, 100, 150, 200, 300, 500};
@@ -46,8 +52,18 @@ public:
         SCD41Sensor::begin();
         PMS7003Sensor::begin();
         MQTTClient::init();
-        if (lastOLEDUpdate == 0) OLEDDisplay::init();
+        OLEDDisplay::init();
+        oledTimer = millis();
+        oledOn = true;
+
+        pinMode(BOOT_BUTTON_PIN, INPUT_PULLUP);
+        attachInterrupt(digitalPinToInterrupt(BOOT_BUTTON_PIN), handleButtonPress, FALLING);
+
         lastOLEDUpdate = lastSerialUpdate = lastMQTTUpdate = millis();
+    }
+
+    static void setOledToggleRequested() {
+        oledToggleRequested = true;
     }
 
     static void updateSensors() {
@@ -57,6 +73,7 @@ public:
         temperatureF = BME680Sensor::getTemperatureF();
         humidity = BME680Sensor::getHumidity();
         pressure = BME680Sensor::getPressure();
+        gas_resistance = BME680Sensor::getGasResistance();
 
         if (SCD41Sensor::read()) {
             co2 = SCD41Sensor::getCO2();
@@ -72,13 +89,31 @@ public:
     static void run() {
         unsigned long now = millis();
 
-        if (now - lastOLEDUpdate >= 1000) {
-            lastOLEDUpdate = now;
-            updateSensors();
-            OLEDDisplay::update(temperatureF, humidity, pressure, co2, pm1_0, pm2_5, pm10, aqi, enhanced_aqi);
+        if (oledToggleRequested) {
+            oledToggleRequested = false;
+            oledOn = !oledOn;
+            if (oledOn) {
+                oledTimer = now;
+                Serial.println("OLED turned ON.");
+            } else {
+                OLEDDisplay::init();
+                Serial.println("OLED turned OFF.");
+            }
         }
 
-        if (now - lastSerialUpdate >= 10000) {
+        if (oledOn && now - oledTimer >= OLED_TIMEOUT) {
+            oledOn = false;
+            OLEDDisplay::init();
+            Serial.println("OLED Auto Shutoff.");
+        }
+
+        if (oledOn && now - lastOLEDUpdate >= 1000) {
+            lastOLEDUpdate = now;
+            updateSensors();
+            OLEDDisplay::update(temperatureF, humidity, pressure, co2, pm1_0, pm2_5, pm10, aqi, enhanced_aqi, gas_resistance);
+        }
+		
+		if (now - lastSerialUpdate >= 10000) {
             lastSerialUpdate = now;
             updateSensors();
             Serial.print("Temp: "); Serial.print(temperatureF, 2); Serial.print(" °F, ");
@@ -105,19 +140,38 @@ public:
             MQTTClient::publish("homeassistant/sensor/esp32_aqi/state", String(enhanced_aqi));
         }
     }
+
+    static bool isOledOn() {
+        return oledOn;
+    }
 };
 
+// Define static member variables
 float Scheduler::temperatureF = 0;
 float Scheduler::humidity = 0;
 float Scheduler::pressure = 0;
+float Scheduler::gas_resistance = 0;
 int Scheduler::co2 = 0;
 int Scheduler::pm1_0 = 0;
 int Scheduler::pm2_5 = 0;
 int Scheduler::pm10 = 0;
 int Scheduler::aqi = 0;
 int Scheduler::enhanced_aqi = 0;
+bool Scheduler::oledOn = true;
+volatile bool Scheduler::oledToggleRequested = false;
 unsigned long Scheduler::lastOLEDUpdate = 0;
 unsigned long Scheduler::lastSerialUpdate = 0;
 unsigned long Scheduler::lastMQTTUpdate = 0;
+unsigned long Scheduler::oledTimer = 0;
+
+// Interrupt Service Routine (ISR) for button press
+void IRAM_ATTR handleButtonPress() {
+    Scheduler::setOledToggleRequested();
+}
+
+// Define isOledOn() function properly
+inline bool isOledOn() {
+    return Scheduler::isOledOn();
+}
 
 #endif // SCHEDULER_H
