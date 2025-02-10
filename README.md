@@ -21,9 +21,9 @@ The collected data is displayed on an **SSD1306 OLED screen** and published to a
 - Publishes sensor data to an **MQTT broker** for smart home automation
 - Computes **Air Quality Index (AQI)** based on PM data
 
-
 ## Project Structure
 
+```
 📁 **ESP32_Air_Quality_Sensor**
 ├── 📄 `sketch.ino`               # Main entry point.
 ├── 📄 `README.md`                # Project documentation
@@ -40,6 +40,7 @@ The collected data is displayed on an **SSD1306 OLED screen** and published to a
     ├── 📄 `bme680_sensor.h`      # Implements BME680 sensor reading
     ├── 📄 `scd41_sensor.h`       # Implements SCD41 sensor reading
     ├── 📄 `pms7003_sensor.h`     # Implements PMS7003 sensor reading
+```
 
 
 ## Components Used
