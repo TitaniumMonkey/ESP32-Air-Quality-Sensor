@@ -7,24 +7,22 @@
 #include "sensors/pms7003_sensor.h"
 #include "lib/mqtt_client.h"
 #include "lib/oled_display.h"
+#include "lib/enhanced_aqi.h"
 
 class Scheduler {
 private:
     static float temperatureF, humidity, pressure;
-    static int co2, pm1_0, pm2_5, pm10, aqi;
+    static int co2, pm1_0, pm2_5, pm10, aqi, enhanced_aqi;
     static unsigned long lastOLEDUpdate, lastSerialUpdate, lastMQTTUpdate;
 
     // Function to calculate AQI based on EPA standards
     static int calculateAQI(int pm2_5, int pm10) {
-        // EPA AQI Breakpoints for PM2.5 (µg/m³)
         const int pm25Breakpoints[] = {0, 12, 35, 55, 150, 250, 500};
         const int pm25AQIValues[]   = {0, 50, 100, 150, 200, 300, 500};
 
-        // EPA AQI Breakpoints for PM10 (µg/m³)
         const int pm10Breakpoints[] = {0, 54, 154, 254, 354, 424, 604};
         const int pm10AQIValues[]   = {0, 50, 100, 150, 200, 300, 500};
 
-        // Function to calculate AQI based on EPA breakpoints
         auto calculatePollutantAQI = [](int concentration, const int breakpoints[], const int aqiValues[]) {
             for (int i = 1; i < 7; i++) {
                 if (concentration <= breakpoints[i]) {
@@ -32,7 +30,7 @@ private:
                            (breakpoints[i] - breakpoints[i - 1]) + aqiValues[i - 1];
                 }
             }
-            return 500; // Max AQI limit
+            return 500;
         };
 
         int aqi_pm2_5 = calculatePollutantAQI(pm2_5, pm25Breakpoints, pm25AQIValues);
@@ -55,32 +53,31 @@ public:
     static void updateSensors() {
         BME680Sensor::read();
         PMS7003Sensor::read();
-        
+
         temperatureF = BME680Sensor::getTemperatureF();
         humidity = BME680Sensor::getHumidity();
         pressure = BME680Sensor::getPressure();
-        
+
         if (SCD41Sensor::read()) {
             co2 = SCD41Sensor::getCO2();
         }
-        
+
         pm1_0 = PMS7003Sensor::getPM1_0();
         pm2_5 = PMS7003Sensor::getPM2_5();
         pm10 = PMS7003Sensor::getPM10();
         aqi = calculateAQI(pm2_5, pm10);
+        enhanced_aqi = getEnhancedAQI();
     }
 
     static void run() {
         unsigned long now = millis();
 
-        // Update OLED every 1 second
         if (now - lastOLEDUpdate >= 1000) {
             lastOLEDUpdate = now;
             updateSensors();
-            OLEDDisplay::update(temperatureF, humidity, pressure, co2, pm1_0, pm2_5, pm10, aqi);
+            OLEDDisplay::update(temperatureF, humidity, pressure, co2, pm1_0, pm2_5, pm10, aqi, enhanced_aqi);
         }
 
-        // Send Serial Output every 10 seconds
         if (now - lastSerialUpdate >= 10000) {
             lastSerialUpdate = now;
             updateSensors();
@@ -91,10 +88,10 @@ public:
             Serial.print("PM1.0: "); Serial.print(pm1_0); Serial.print(" µg/m³, ");
             Serial.print("PM2.5: "); Serial.print(pm2_5); Serial.print(" µg/m³, ");
             Serial.print("PM10: "); Serial.print(pm10); Serial.print(" µg/m³, ");
-            Serial.print("AQI: "); Serial.println(aqi);
+            Serial.print("AQI: "); Serial.print(aqi);
+            Serial.print(" | Enhanced AQI: "); Serial.println(enhanced_aqi);
         }
 
-        // Send MQTT Message every 1 minute
         if (now - lastMQTTUpdate >= 60000) {
             lastMQTTUpdate = now;
             updateSensors();
@@ -105,12 +102,11 @@ public:
             MQTTClient::publish("homeassistant/sensor/esp32_pm1_0/state", String(pm1_0));
             MQTTClient::publish("homeassistant/sensor/esp32_pm2_5/state", String(pm2_5));
             MQTTClient::publish("homeassistant/sensor/esp32_pm10/state", String(pm10));
-            MQTTClient::publish("homeassistant/sensor/esp32_aqi/state", String(aqi));
+            MQTTClient::publish("homeassistant/sensor/esp32_aqi/state", String(enhanced_aqi));
         }
     }
 };
 
-// Declare global variables
 float Scheduler::temperatureF = 0;
 float Scheduler::humidity = 0;
 float Scheduler::pressure = 0;
@@ -119,6 +115,7 @@ int Scheduler::pm1_0 = 0;
 int Scheduler::pm2_5 = 0;
 int Scheduler::pm10 = 0;
 int Scheduler::aqi = 0;
+int Scheduler::enhanced_aqi = 0;
 unsigned long Scheduler::lastOLEDUpdate = 0;
 unsigned long Scheduler::lastSerialUpdate = 0;
 unsigned long Scheduler::lastMQTTUpdate = 0;
