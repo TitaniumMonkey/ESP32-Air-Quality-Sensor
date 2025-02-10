@@ -1,7 +1,7 @@
 # ESP32 Air Quality Sensor with OLED Display & MQTT
 
 <p align="center">
-  <img src="https://i.imgur.com/WlaliLa.jpeg">
+  <img src="https://i.imgur.com/VVn6Nc8.jpeg>
   <img src="https://i.imgur.com/lr6dN5D.png" alt="ESP32 Weather Station" width="512" height="512">
 </p>
 
@@ -22,6 +22,28 @@ The collected data is displayed on an **SSD1306 OLED screen** and published to a
 - Computes **Air Quality Index (AQI)** based on PM data
 - Uses **Wi-Fi** to sync time via **NTP** and ensure accurate timestamps
 - **Modularized design** with FreeRTOS-style task scheduling
+
+
+## Project Structure
+
+```
+📁 **ESP32_Air_Quality_Sensor**
+├── 📄 `sketch.ino`               # Main entry point.
+├── 📄 `README.md`                # Project documentation
+│   📄 `secrets.h`                # Wi-Fi & MQTT credentials (template included but must be updated)
+├── 📄 `LICENSE`                  # License file
+├── 📁 `lib`                      # Library files for modular components
+│   ├── 📄 `mqtt_client.h`        # MQTT connection management
+│   ├── 📄 `oled_display.h`       # OLED display control
+│   ├── 📄 `scheduler.h`          # Task scheduling
+│   ├── 📄 `enhanced_aqi.h`       # Enhanced AQI calculation
+│   ├── 📄 `wifi_manager.h`       # Manages Wi-Fi connection
+
+└── 📁 `sensor`                   # Source files implementing component logic
+    ├── 📄 `bme680_sensor.h`      # Implements BME680 sensor reading
+    ├── 📄 `scd41_sensor.h`       # Implements SCD41 sensor reading
+    ├── 📄 `pms7003_sensor.h`     # Implements PMS7003 sensor reading
+```
 
 ## Components Used
 | Component             | Description                    |
