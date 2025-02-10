@@ -5,6 +5,7 @@
 #include "lib/wifi_manager.h"
 #include "lib/mqtt_client.h"
 #include "lib/oled_display.h"
+#include "lib/enhanced_aqi.h"
 #include "secrets.h"
 
 void setup() {
