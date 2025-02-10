@@ -1,5 +1,10 @@
 # ESP32 Air Quality Sensor with OLED Display & MQTT
 
+<p align="center">
+  <img src="https://i.imgur.com/lr6dN5D.png" alt="ESP32 Weather Station" width="512" height="512">
+  <img src="https://i.imgur.com/xkrLPfS.jpeg" alt="ESP32 Sensor Close-up" width="658" height="506">
+</p>
+
 ## Overview
 This project is an **ESP32-based Air Quality Monitoring System** that measures and reports environmental data, including:
 - **Temperature & Humidity** (BME680)
