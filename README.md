@@ -1,4 +1,4 @@
-# ESP32 Air Quality Sensor with OLED Display, MQTT & Ehanced AQI
+# ESP32 Air Quality Sensor with OLED Display, MQTT & Enhanced AQI
 
 <p align="center">
   <img src="https://i.imgur.com/VVn6Nc8.jpeg">
