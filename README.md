@@ -1,7 +1,7 @@
-# ESP32 Air Quality Sensor with OLED Display, MQTT & Enhanced AQI
+# ESP32 Air Quality Sensor with OLED Display, MQTT & Enhanced BMI
 
 <p align="center">
-  <img src="https://i.imgur.com/VVn6Nc8.jpeg">
+  <img src="https://i.imgur.com/VVn6Nc8.jpeg>
   <img src="https://i.imgur.com/lr6dN5D.png" alt="ESP32 Weather Station" width="512" height="512">
 </p>
 
@@ -16,6 +16,21 @@ This project is an **ESP32-based Air Quality Monitoring System** that measures a
 The collected data is displayed on an **SSD1306 OLED screen** and published to an **MQTT broker** every **1 minute** for integration with platforms like **Home Assistant**.
 
 ## Features
+
+## Enhanced AQI Calculation
+The **Enhanced Air Quality Index (EAQI)** improves upon the traditional AQI by incorporating additional environmental parameters beyond just particulate matter. While the standard AQI primarily accounts for PM2.5 and PM10 levels, EAQI integrates:
+- **VOC Measurements** from the BME680 gas sensor.
+- **CO₂ Levels** from the SCD41 to assess indoor air quality and ventilation.
+- **Temperature & Humidity Adjustments**, which influence pollutant impact and comfort levels.
+
+### How EAQI is Calculated
+1. **Particulate Matter AQI (PM_AQI)**: Derived using EPA’s AQI formula from PM2.5 and PM10 levels.
+2. **VOC AQI (VOC_AQI)**: Calculated from BME680 gas resistance values, mapped to an AQI-like scale.
+3. **CO₂ AQI (CO2_AQI)**: Converts CO₂ ppm levels into an AQI scale.
+4. **Final EAQI Value**: The **highest** of PM_AQI, VOC_AQI, or CO2_AQI determines the overall Enhanced AQI, ensuring that the most critical pollutant drives the air quality warning.
+
+This method provides a more comprehensive measure of air quality, reflecting real-world conditions where multiple factors contribute to air pollution and health risks.
+
 - Reads air quality data from **SCD41 (CO₂)**, **PMS7003 (PM1.0, PM2.5, PM10)**, and **BME680 (Temperature, Humidity, Pressure)**
 - Displays real-time data on a **0.96-inch SSD1306 OLED**
 - Publishes sensor data to an **MQTT broker** for smart home automation
