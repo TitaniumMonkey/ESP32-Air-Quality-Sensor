@@ -129,10 +129,9 @@ AQI:  184
 - Ensure the broker is running and accessible.
 - Try disabling MQTT authentication temporarily.
 
-## Future Plans
-1. **Battery-Powered Version** → Modify for **low-power ESP32** setup without an OLED.
-2. **LoRa & Meshtastic Integration** → Use **LoRaWAN** or **Meshtastic** to transmit sensor data over long distances.
-3. **Additional Sensors** → Support for **VOC, NO₂, and other air quality sensors**.
+## Future Plans.
+1. **LoRa & Meshtastic Integration** → Use **LoRaWAN** or **Meshtastic** to transmit sensor data over long distances.
+2. **Additional Sensors** → Support for **VOC, NO₂, and other air quality sensors**.
 
 ---
 ### 🚀 Enjoy your ESP32 Air Quality Sensor!
