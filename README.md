@@ -27,7 +27,7 @@ The collected data is displayed on an **SSD1306 OLED screen** and published to a
 📁 **ESP32_Air_Quality_Sensor**
 ├── 📄 `sketch.ino`               # Main entry point.
 ├── 📄 `README.md`                # Project documentation
-│   📄 `secrets.h`                # Wi-Fi & MQTT credentials (template included but must be updated)
+├── 📄 `secrets.h`                # Wi-Fi & MQTT credentials (template included but must be updated)
 ├── 📄 `LICENSE`                  # License file
 ├── 📁 `lib`                      # Library files for modular components
 │   ├── 📄 `mqtt_client.h`        # MQTT connection management
