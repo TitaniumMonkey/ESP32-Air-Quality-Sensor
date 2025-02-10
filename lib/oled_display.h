@@ -10,6 +10,11 @@
 #define OLED_RESET    -1  // Reset pin (not used)
 #define SCREEN_ADDRESS 0x3C  // Default I2C address for 0.96" OLED
 
+class Scheduler;  // Forward declaration
+
+// Declare function instead of calling it directly
+extern bool isOledOn();  // <-- Add this line
+
 class OLEDDisplay {
 private:
     static Adafruit_SSD1306 display;
@@ -20,16 +25,20 @@ public:
             Serial.println("SSD1306 OLED allocation failed");
             return;
         }
-		Serial.println("OLED initialized");
         display.clearDisplay();
         display.setTextSize(1);
         display.setTextColor(SSD1306_WHITE);
         display.display();
     }
 
-    static void update(float temperatureF, float humidity, float pressure, int co2, int pm1_0, int pm2_5, int pm10, int aqi, int enhanced_aqi) {
+    static void update(float temperatureF, float humidity, float pressure, int co2, int pm1_0, int pm2_5, int pm10, int aqi, int enhanced_aqi, int gasResistance) {
         display.clearDisplay();
         display.setCursor(0, 0);
+
+        if (!isOledOn()) {  // Use the function instead of Scheduler::
+            display.display();
+            return;
+        }
 
         // Format and display sensor data
         display.print("Temp: "); display.print(temperatureF, 1); display.println(" F");
@@ -40,9 +49,10 @@ public:
         display.print(pm1_0); display.print("/");
         display.print(pm2_5); display.print("/");
         display.print(pm10); display.println(" ug/m3");
-		display.print("AQI: "); display.print(aqi); 
-		display.print(" | EAQI: "); display.print(enhanced_aqi);
-        
+        display.print("AQI: "); display.print(aqi); 
+        display.print(" | EAQI: "); display.println(enhanced_aqi);
+        display.print("GasRes: "); display.print(gasResistance); display.println(" ohms");
+
         display.display();
     }
 };
