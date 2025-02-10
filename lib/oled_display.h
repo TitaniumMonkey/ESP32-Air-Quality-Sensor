@@ -20,13 +20,14 @@ public:
             Serial.println("SSD1306 OLED allocation failed");
             return;
         }
+		Serial.println("OLED initialized");
         display.clearDisplay();
         display.setTextSize(1);
         display.setTextColor(SSD1306_WHITE);
         display.display();
     }
 
-    static void update(float temperatureF, float humidity, float pressure, int co2, int pm1_0, int pm2_5, int pm10, int aqi) {
+    static void update(float temperatureF, float humidity, float pressure, int co2, int pm1_0, int pm2_5, int pm10, int aqi, int enhanced_aqi) {
         display.clearDisplay();
         display.setCursor(0, 0);
 
@@ -39,7 +40,8 @@ public:
         display.print(pm1_0); display.print("/");
         display.print(pm2_5); display.print("/");
         display.print(pm10); display.println(" ug/m3");
-        display.print("AQI: "); display.println(aqi);
+		display.print("AQI: "); display.print(aqi); 
+		display.print(" | EAQI: "); display.print(enhanced_aqi);
         
         display.display();
     }
