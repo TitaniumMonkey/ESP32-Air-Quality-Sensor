@@ -1,4 +1,4 @@
-# ESP32 Air Quality Sensor with OLED Display & MQTT
+# ESP32 Air Quality Sensor with OLED Display, MQTT & Ehanced BMI
 
 <p align="center">
   <img src="https://i.imgur.com/VVn6Nc8.jpeg>
