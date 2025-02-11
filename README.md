@@ -65,7 +65,7 @@ This method provides a more comprehensive measure of air quality, reflecting rea
 - Displays real-time data on a **0.96-inch SSD1306 OLED**
 - Publishes sensor data to an **MQTT broker** for smart home automation
 - Computes **Air Quality Index (AQI)** based on PM data
-- Uses **Wi-Fi** to sync time via **NTP** and ensure accurate timestamps
+
 
 ## Project Structure
 
