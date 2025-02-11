@@ -1,31 +1,48 @@
 #ifndef WIFI_MANAGER_H
 #define WIFI_MANAGER_H
 
+#include <Arduino.h>
 #include <WiFi.h>
-#include "secrets.h"
+#include "secrets.h"  // Include secrets.h for WiFi credentials
 
 class WiFiManager {
 public:
-    static void connect() {
-        Serial.print("Connecting to WiFi: ");
-        Serial.println(WIFI_SSID);
-        
-        WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-        
-        int attempts = 0;
-        while (WiFi.status() != WL_CONNECTED && attempts < 20) {
-            delay(1000);
-            Serial.print(".");
-            attempts++;
-        }
-        
+    static bool connect(unsigned long timeout) {
+        // If already connected, return true
         if (WiFi.status() == WL_CONNECTED) {
-            Serial.println("\nWiFi Connected!");
-            Serial.print("IP Address: ");
-            Serial.println(WiFi.localIP());
-        } else {
-            Serial.println("\nFailed to connect to WiFi");
+            return true;
         }
+
+        Serial.print("Connecting to WiFi: ");
+        Serial.println(WIFI_SSID);  // Print which network we're connecting to
+        WiFi.begin(WIFI_SSID, WIFI_PASSWORD);  // Use WIFI_PASS from secrets.h
+
+        unsigned long startAttempt = millis();
+
+        // Try to connect until timeout
+        while (millis() - startAttempt < timeout) {
+            if (WiFi.status() == WL_CONNECTED) {
+                Serial.println();
+                Serial.print("Connected to WiFi. IP: ");
+                Serial.println(WiFi.localIP());
+                return true;
+            }
+            Serial.print(".");
+            delay(500);
+        }
+
+        Serial.println();
+        Serial.println("WiFi connection timed out");
+        WiFi.disconnect();
+        return false;
+    }
+
+    static void disconnect() {
+        WiFi.disconnect();
+    }
+
+    static bool isConnected() {
+        return WiFi.status() == WL_CONNECTED;
     }
 
     static void syncNTP() {

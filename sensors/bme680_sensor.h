@@ -10,7 +10,7 @@
 class BME680Sensor {
 private:
     static Adafruit_BME680 bme;
-    static float temperatureC, temperatureF, humidity, pressure, altitude;
+    static float temperatureC, temperatureF, humidity, pressure, altitude, gasResistance;
 
 public:
     static void begin() {
@@ -40,6 +40,7 @@ public:
         humidity = bme.humidity;
         pressure = bme.pressure / 100.0; // Convert Pa to hPa
         altitude = 44330 * (1.0 - pow(pressure / 1013.25, 0.1903));
+        gasResistance = bme.gas_resistance; // Store gas resistance value
     }
 
     // Getter functions for latest stored values
@@ -48,6 +49,7 @@ public:
     static float getHumidity() { return humidity; }
     static float getPressure() { return pressure; }
     static float getAltitude() { return altitude; }
+    static float getGasResistance() { return gasResistance; } // New function to get gas resistance
 };
 
 // Declare static variables
@@ -57,5 +59,6 @@ float BME680Sensor::temperatureF = 0.0;
 float BME680Sensor::humidity = 0.0;
 float BME680Sensor::pressure = 0.0;
 float BME680Sensor::altitude = 0.0;
+float BME680Sensor::gasResistance = 0.0; // Initialize gas resistance
 
 #endif // BME680_SENSOR_H
