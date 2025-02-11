@@ -188,15 +188,16 @@ public:
 		if (now - lastSerialUpdate >= 10000) {
             lastSerialUpdate = now;
             updateSensors();
-            Serial.print("Temp: "); Serial.print(temperatureF, 2); Serial.print(" °F, ");
-            Serial.print("Humidity: "); Serial.print(humidity, 2); Serial.print(" %, ");
-            Serial.print("Pressure: "); Serial.print(pressure, 2); Serial.print(" hPa, ");
-            Serial.print("CO2: "); Serial.print(co2); Serial.print(" ppm, ");
-            Serial.print("PM1.0: "); Serial.print(pm1_0); Serial.print(" µg/m³, ");
-            Serial.print("PM2.5: "); Serial.print(pm2_5); Serial.print(" µg/m³, ");
-            Serial.print("PM10: "); Serial.print(pm10); Serial.print(" µg/m³, ");
+            Serial.print("Temp: "); Serial.print(temperatureF, 2); Serial.print(" °F | ");
+            Serial.print("Humidity: "); Serial.print(humidity, 2); Serial.print(" % | ");
+            Serial.print("Pressure: "); Serial.print(pressure, 2); Serial.print(" hPa | ");
+            Serial.print("CO2: "); Serial.print(co2); Serial.print(" ppm | ");
+            Serial.print("PM1.0: "); Serial.print(pm1_0); Serial.print(" µg/m³ | ");
+            Serial.print("PM2.5: "); Serial.print(pm2_5); Serial.print(" µg/m³ | ");
+            Serial.print("PM10: "); Serial.print(pm10); Serial.print(" µg/m³ | ");
             Serial.print("AQI: "); Serial.print(aqi);
-            Serial.print(" | Enhanced AQI: "); Serial.println(enhanced_aqi);
+            Serial.print(" | Enhanced AQI: "); Serial.print(enhanced_aqi);
+            Serial.print(" | Gas Res: "); Serial.print(gas_resistance); Serial.println(" Ohms");
         }
 
         // Only attempt MQTT updates if MQTT is enabled and connected
