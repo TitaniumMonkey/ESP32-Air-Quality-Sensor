@@ -8,9 +8,14 @@
 #include "lib/mqtt_client.h"
 #include "lib/oled_display.h"
 #include "lib/enhanced_aqi.h"
+#include "lib/wifi_manager.h"
 
 #define OLED_TIMEOUT 300000  // 5 minutes timeout in milliseconds
 #define BOOT_BUTTON_PIN 0    // ESP32 Boot Button (GPIO 0)
+#define MQTT_RETRY_INTERVAL 5000      // 5 seconds between immediate retries
+#define MQTT_MAX_RETRIES 3            // Maximum number of immediate retries
+#define MQTT_LONG_RETRY_INTERVAL 900000 // 15 minutes between long retry attempts
+#define WIFI_CONNECT_TIMEOUT 15000    // 15 seconds timeout for WiFi connection
 
 void IRAM_ATTR handleButtonPress(); // Declare ISR function before use
 
@@ -21,6 +26,10 @@ private:
     static unsigned long lastOLEDUpdate, lastSerialUpdate, lastMQTTUpdate, oledTimer;
     static bool oledOn;
     static volatile bool oledToggleRequested;
+    static bool mqttEnabled;
+    static unsigned long lastConnectionAttempt;
+    static int connectionRetryCount;
+    static bool wifiConnected;
 
     static int calculateAQI(int pm2_5, int pm10) {
         const int pm25Breakpoints[] = {0, 12, 35, 55, 150, 250, 500};
@@ -48,18 +57,69 @@ private:
 public:
     static void init() {
         Serial.println("Scheduler initialized");
+        
+        // Start core functionality first
         BME680Sensor::begin();
         SCD41Sensor::begin();
         PMS7003Sensor::begin();
-        MQTTClient::init();
         OLEDDisplay::init();
+        
         oledTimer = millis();
         oledOn = true;
-
+        
         pinMode(BOOT_BUTTON_PIN, INPUT_PULLUP);
         attachInterrupt(digitalPinToInterrupt(BOOT_BUTTON_PIN), handleButtonPress, FALLING);
 
         lastOLEDUpdate = lastSerialUpdate = lastMQTTUpdate = millis();
+        lastConnectionAttempt = 0;
+        connectionRetryCount = 0;
+        wifiConnected = false;
+        mqttEnabled = false;
+
+        // Try initial connection
+        attemptConnection();
+    }
+
+    static void attemptConnection() {
+        if (!wifiConnected) {
+            Serial.println("Attempting WiFi connection...");
+            if (WiFiManager::connect(WIFI_CONNECT_TIMEOUT)) {
+                wifiConnected = true;
+                Serial.println("WiFi connected successfully");
+                // Try MQTT after successful WiFi connection
+                if (MQTTClient::init()) {
+                    mqttEnabled = true;
+                    Serial.println("MQTT connected successfully");
+                    connectionRetryCount = 0;
+                } else {
+                    mqttEnabled = false;
+                    connectionRetryCount++;
+                    Serial.println("MQTT connection failed");
+                }
+            } else {
+                wifiConnected = false;
+                connectionRetryCount++;
+                Serial.println("WiFi connection failed");
+            }
+        } else if (!mqttEnabled) {
+            // Try MQTT if WiFi is connected but MQTT isn't
+            if (MQTTClient::init()) {
+                mqttEnabled = true;
+                Serial.println("MQTT connected successfully");
+                connectionRetryCount = 0;
+            } else {
+                mqttEnabled = false;
+                connectionRetryCount++;
+                Serial.println("MQTT connection failed");
+            }
+        }
+
+        // If we've failed too many times, wait for the long retry interval
+        if (connectionRetryCount >= MQTT_MAX_RETRIES) {
+            Serial.println("Maximum connection attempts reached. Will retry in 15 minutes.");
+            lastConnectionAttempt = millis();
+            connectionRetryCount = 0;
+        }
     }
 
     static void setOledToggleRequested() {
@@ -88,6 +148,18 @@ public:
 
     static void run() {
         unsigned long now = millis();
+
+        // Handle connection retries
+        if (!mqttEnabled && (now - lastConnectionAttempt >= MQTT_LONG_RETRY_INTERVAL)) {
+            Serial.println("Attempting periodic reconnection...");
+            lastConnectionAttempt = now;
+            attemptConnection();
+        }
+
+        // Handle MQTT client loop if connected
+        if (mqttEnabled && wifiConnected) {
+            MQTTClient::loop();
+        }
 
         if (oledToggleRequested) {
             oledToggleRequested = false;
@@ -127,17 +199,23 @@ public:
             Serial.print(" | Enhanced AQI: "); Serial.println(enhanced_aqi);
         }
 
-        if (now - lastMQTTUpdate >= 60000) {
-            lastMQTTUpdate = now;
-            updateSensors();
-            MQTTClient::publish("homeassistant/sensor/esp32_temperature/state", "{ \"temperature\": " + String(temperatureF) + " }");
-            MQTTClient::publish("homeassistant/sensor/esp32_humidity/state", "{ \"humidity\": " + String(humidity) + " }");
-            MQTTClient::publish("homeassistant/sensor/esp32_pressure/state", "{ \"pressure\": " + String(pressure) + " }");
-            MQTTClient::publish("homeassistant/sensor/esp32_co2/state", String(co2));
-            MQTTClient::publish("homeassistant/sensor/esp32_pm1_0/state", String(pm1_0));
-            MQTTClient::publish("homeassistant/sensor/esp32_pm2_5/state", String(pm2_5));
-            MQTTClient::publish("homeassistant/sensor/esp32_pm10/state", String(pm10));
-            MQTTClient::publish("homeassistant/sensor/esp32_aqi/state", String(enhanced_aqi));
+        // Only attempt MQTT updates if MQTT is enabled and connected
+        if (mqttEnabled && wifiConnected && now - lastMQTTUpdate >= 60000) {
+            if (!MQTTClient::isConnected()) {
+                mqttEnabled = false;
+                Serial.println("MQTT connection lost - will retry later");
+            } else {
+                lastMQTTUpdate = now;
+                updateSensors();
+                MQTTClient::publish("homeassistant/sensor/esp32_temperature/state", "{ \"temperature\": " + String(temperatureF) + " }");
+                MQTTClient::publish("homeassistant/sensor/esp32_humidity/state", "{ \"humidity\": " + String(humidity) + " }");
+                MQTTClient::publish("homeassistant/sensor/esp32_pressure/state", "{ \"pressure\": " + String(pressure) + " }");
+                MQTTClient::publish("homeassistant/sensor/esp32_co2/state", String(co2));
+                MQTTClient::publish("homeassistant/sensor/esp32_pm1_0/state", String(pm1_0));
+                MQTTClient::publish("homeassistant/sensor/esp32_pm2_5/state", String(pm2_5));
+                MQTTClient::publish("homeassistant/sensor/esp32_pm10/state", String(pm10));
+                MQTTClient::publish("homeassistant/sensor/esp32_aqi/state", String(aqi));
+            }
         }
     }
 
@@ -163,6 +241,10 @@ unsigned long Scheduler::lastOLEDUpdate = 0;
 unsigned long Scheduler::lastSerialUpdate = 0;
 unsigned long Scheduler::lastMQTTUpdate = 0;
 unsigned long Scheduler::oledTimer = 0;
+bool Scheduler::mqttEnabled = false;
+unsigned long Scheduler::lastConnectionAttempt = 0;
+int Scheduler::connectionRetryCount = 0;
+bool Scheduler::wifiConnected = false;
 
 // Interrupt Service Routine (ISR) for button press
 void IRAM_ATTR handleButtonPress() {
