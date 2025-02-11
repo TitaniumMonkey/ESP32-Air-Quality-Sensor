@@ -129,16 +129,13 @@ public:
     static void updateSensors() {
         BME680Sensor::read();
         PMS7003Sensor::read();
+        SCD41Sensor::read();
 
         temperatureF = BME680Sensor::getTemperatureF();
         humidity = BME680Sensor::getHumidity();
         pressure = BME680Sensor::getPressure();
         gas_resistance = BME680Sensor::getGasResistance();
-
-        if (SCD41Sensor::read()) {
-            co2 = SCD41Sensor::getCO2();
-        }
-
+        co2 = SCD41Sensor::getCO2();
         pm1_0 = PMS7003Sensor::getPM1_0();
         pm2_5 = PMS7003Sensor::getPM2_5();
         pm10 = PMS7003Sensor::getPM10();
@@ -179,7 +176,7 @@ public:
             Serial.println("OLED Auto Shutoff.");
         }
 
-        if (oledOn && now - lastOLEDUpdate >= 1000) {
+        if (oledOn && now - lastOLEDUpdate >= 500) {
             lastOLEDUpdate = now;
             updateSensors();
             OLEDDisplay::update(temperatureF, humidity, pressure, co2, pm1_0, pm2_5, pm10, aqi, enhanced_aqi, gas_resistance);
@@ -197,7 +194,7 @@ public:
             Serial.print("PM10: "); Serial.print(pm10); Serial.print(" µg/m³ | ");
             Serial.print("AQI: "); Serial.print(aqi);
             Serial.print(" | Enhanced AQI: "); Serial.print(enhanced_aqi);
-            Serial.print(" | Gas Res: "); Serial.print(gas_resistance); Serial.println(" Ohms");
+            Serial.print(" | Gas Res: "); Serial.print(gas_resistance, 0); Serial.println(" Ohms");
         }
 
         // Only attempt MQTT updates if MQTT is enabled and connected
