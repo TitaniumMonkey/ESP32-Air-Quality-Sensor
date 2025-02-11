@@ -17,6 +17,36 @@ The collected data is displayed on an **SSD1306 OLED screen** and published to a
 
 ## Features
 
+### Sensor Capabilities
+- Temperature, Humidity, and Pressure monitoring (BME680)
+- CO2 level monitoring (SCD41)
+- Particulate Matter monitoring (PMS7003)
+  - PM1.0, PM2.5, and PM10 measurements
+- Standard AQI calculation
+- Enhanced AQI calculation using multiple sensor inputs
+
+### Display and Controls
+- OLED Display showing real-time sensor readings
+- Auto display shutdown after 5 minutes to prevent burn-in
+- Boot button (GPIO 0) functions as OLED toggle switch
+- Display automatically reactivates when new button press detected
+
+### Network Features
+- Graceful offline operation when WiFi is unavailable
+- Automatic WiFi reconnection attempts
+- MQTT integration with Home Assistant when network available
+- Smart connection management:
+  - Initial connection attempts with 15-second timeout
+  - After 3 failed attempts, retries every 15 minutes
+  - Automatic recovery when network becomes available
+  - No impact on sensor operation during network outages
+
+### Data Reporting
+- Local display via OLED
+- Serial output for debugging
+- MQTT publishing to Home Assistant when connected
+- Automatic sensor discovery in Home Assistant
+
 ## Enhanced AQI Calculation
 The **Enhanced Air Quality Index (EAQI)** improves upon the traditional AQI by incorporating additional environmental parameters beyond just particulate matter. While the standard AQI primarily accounts for PM2.5 and PM10 levels, EAQI integrates:
 - **VOC Measurements** from the BME680 gas sensor.
@@ -24,7 +54,7 @@ The **Enhanced Air Quality Index (EAQI)** improves upon the traditional AQI by i
 - **Temperature & Humidity Adjustments**, which influence pollutant impact and comfort levels.
 
 ### How EAQI is Calculated
-1. **Particulate Matter AQI (PM_AQI)**: Derived using EPA’s AQI formula from PM2.5 and PM10 levels.
+1. **Particulate Matter AQI (PM_AQI)**: Derived using EPA's AQI formula from PM2.5 and PM10 levels.
 2. **VOC AQI (VOC_AQI)**: Calculated from BME680 gas resistance values, mapped to an AQI-like scale.
 3. **CO₂ AQI (CO2_AQI)**: Converts CO₂ ppm levels into an AQI scale.
 4. **Final EAQI Value**: The **highest** of PM_AQI, VOC_AQI, or CO2_AQI determines the overall Enhanced AQI, ensuring that the most critical pollutant drives the air quality warning.
@@ -36,8 +66,6 @@ This method provides a more comprehensive measure of air quality, reflecting rea
 - Publishes sensor data to an **MQTT broker** for smart home automation
 - Computes **Air Quality Index (AQI)** based on PM data
 - Uses **Wi-Fi** to sync time via **NTP** and ensure accurate timestamps
-- **Modularized design** with FreeRTOS-style task scheduling
-
 
 ## Project Structure
 
@@ -99,7 +127,7 @@ Install the following libraries in **Arduino IDE**:
 2. **Select the Board**
    - Go to **Tools → Board**
    - Select **ESP32 Dev Module**
-   - Set Upload Speed: **115200**
+   - Set Upload Speed: **230400**
    - Flash Mode: **QIO**
    - Partition Scheme: **Default**
 
@@ -172,10 +200,9 @@ AQI:  184
 - Try disabling MQTT authentication temporarily.
 
 ## Future Plans.
-1. **LoRa & Meshtastic Integration** → Use **LoRaWAN** or **Meshtastic** to transmit sensor data over long distances.
-2. **Additional Sensors** → Support for **VOC, NO₂, and other air quality sensors**.
+1. **Additional Sensors** → Support for **VOC, NO₂, and other air quality sensors**.
+2. **LoRa & Meshtastic Integration** → Use **LoRaWAN** or **Meshtastic** to transmit sensor data over long distances. 
 
 ---
 ### 🚀 Enjoy your ESP32 Air Quality Sensor!
 Let me know if you have any issues. Feel free to contribute and improve this project! 😊
-
