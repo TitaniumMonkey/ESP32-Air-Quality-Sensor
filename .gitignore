@@ -1,0 +1,67 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Build directories
+build/
+dist/
+Debug/
+Release/
+
+# IDE specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Project specific
+include/secrets.h
+secrets.h
+*.env
+.env
+config.ini
+
+# Dependency directories
+node_modules/
+vendor/
+
+# Logs
+*.log
+logs/
+log/
+
+# Temporary files
+*.tmp
+*~
+
+# Coverage reports
+coverage/
+*.gcov
+*.gcda
+*.gcno
