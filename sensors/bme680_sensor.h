@@ -11,6 +11,7 @@ class BME680Sensor {
 private:
     static Adafruit_BME680 bme;
     static float temperatureC, temperatureF, humidity, pressure, altitude, gasResistance;
+    static constexpr float TEMP_CALIBRATION_OFFSET = 2.1f;  // Temperature calibration offset in Celsius
 
 public:
     static void begin() {
@@ -34,13 +35,13 @@ public:
             return;
         }
 
-        // Store values
-        temperatureC = bme.temperature;
+        // Store calibrated values
+        temperatureC = bme.temperature - TEMP_CALIBRATION_OFFSET;  // Apply calibration
         temperatureF = (temperatureC * 9.0 / 5.0) + 32.0;
         humidity = bme.humidity;
         pressure = bme.pressure / 100.0; // Convert Pa to hPa
         altitude = 44330 * (1.0 - pow(pressure / 1013.25, 0.1903));
-        gasResistance = bme.gas_resistance; // Store gas resistance value
+        gasResistance = bme.gas_resistance;
     }
 
     // Getter functions for latest stored values
@@ -60,22 +61,5 @@ float BME680Sensor::humidity = 0.0;
 float BME680Sensor::pressure = 0.0;
 float BME680Sensor::altitude = 0.0;
 float BME680Sensor::gasResistance = 0.0; // Initialize gas resistance
-
-float bme680_get_temperature(void) {
-    // Get raw temperature from BME680
-    float raw_temp = BME680Sensor::bme.temperature;
-    
-    // Apply calibration offset to compensate for gas sensor heating
-    // Subtract 2.1°C (approximately 3.79°F)
-    float calibrated_temp = raw_temp - 2.1f;
-    
-    return calibrated_temp;
-}
-
-float bme680_get_temperature_f(void) {
-    float temp_c = bme680_get_temperature();
-    // Convert to Fahrenheit after calibration
-    return (temp_c * 9.0f / 5.0f) + 32.0f;
-}
 
 #endif // BME680_SENSOR_H
