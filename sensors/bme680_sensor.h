@@ -61,4 +61,21 @@ float BME680Sensor::pressure = 0.0;
 float BME680Sensor::altitude = 0.0;
 float BME680Sensor::gasResistance = 0.0; // Initialize gas resistance
 
+float bme680_get_temperature(void) {
+    // Get raw temperature from BME680
+    float raw_temp = BME680Sensor::bme.temperature;
+    
+    // Apply calibration offset to compensate for gas sensor heating
+    // Subtract 2.1°C (approximately 3.79°F)
+    float calibrated_temp = raw_temp - 2.1f;
+    
+    return calibrated_temp;
+}
+
+float bme680_get_temperature_f(void) {
+    float temp_c = bme680_get_temperature();
+    // Convert to Fahrenheit after calibration
+    return (temp_c * 9.0f / 5.0f) + 32.0f;
+}
+
 #endif // BME680_SENSOR_H
