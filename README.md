@@ -2,7 +2,7 @@
 
 <p align="center">
   <img src="https://i.imgur.com/nQ48kV8.png">
-  <img src="https://i.imgur.com/lr6dN5D.png" alt="ESP32 Weather Station" width="512" height="512">
+  <img src="https://i.imgur.com/MAuDw7c.png" width="501" height="793">
 </p>
 
 ## Overview
