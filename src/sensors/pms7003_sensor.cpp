@@ -17,7 +17,7 @@ void PMS7003Sensor::begin() {
     delay(1000);
 }
 
-void PMS7003Sensor::read() {
+bool PMS7003Sensor::read() {
     static uint8_t buffer[32];
     static int index = 0;
     newDataAvailable = false;
@@ -39,8 +39,11 @@ void PMS7003Sensor::read() {
             processPMSFrame(buffer);
             index = 0;  // Reset index for next frame
             newDataAvailable = true; // Mark new data available
+            return true;  // Return true when we have new data
         }
     }
+    
+    return false;  // Return false if no complete frame was read
 }
 
 void PMS7003Sensor::processPMSFrame(uint8_t* buffer) {
