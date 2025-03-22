@@ -1,7 +1,7 @@
 # ESP32 Air Quality Sensor with OLED Display, MQTT & Enhanced AQI
 
 <p align="center">
-  <img src="https://i.imgur.com/VVn6Nc8.jpeg">
+  <img src="https://i.imgur.com/nQ48kV8.png">
   <img src="https://i.imgur.com/lr6dN5D.png" alt="ESP32 Weather Station" width="512" height="512">
 </p>
 
