@@ -21,6 +21,8 @@ bool Scheduler::mqttEnabled = false;
 unsigned long Scheduler::lastConnectionAttempt = 0;
 int Scheduler::connectionRetryCount = 0;
 bool Scheduler::wifiConnected = false;
+unsigned long Scheduler::lastSuccessfulRead = 0;
+unsigned long Scheduler::lastReboot = 0;
 
 int Scheduler::calculateAQI(int pm2_5, int pm10) {
     const int pm25Breakpoints[] = {0, 12, 35, 55, 150, 250, 500};
@@ -56,6 +58,8 @@ void Scheduler::init() {
     
     oledTimer = millis();
     oledOn = true;
+    lastReboot = millis();
+    lastSuccessfulRead = millis();
     
     pinMode(BOOT_BUTTON_PIN, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(BOOT_BUTTON_PIN), handleButtonPress, FALLING);
@@ -110,22 +114,45 @@ void Scheduler::attemptConnection() {
 }
 
 void Scheduler::updateSensors() {
+    bool allSensorsWorking = true;
+    
+    // Update SCD41 sensor
+    if (SCD41Sensor::read()) {
+        temperatureF = SCD41Sensor::getTemperatureF();
+        humidity = SCD41Sensor::getHumidity();
+        co2 = SCD41Sensor::getCO2();
+        lastSuccessfulRead = millis();
+    } else {
+        allSensorsWorking = false;
+    }
+    
+    // Update SGP30 sensor
     SGP30Sensor::read();
-    PMS7003Sensor::read();
-    SCD41Sensor::read();
-    temperatureF = SCD41Sensor::getTemperatureF();
-    humidity = SCD41Sensor::getHumidity();
     tvoc = SGP30Sensor::getTVOC();
     h2 = SGP30Sensor::getH2();
     ethanol = SGP30Sensor::getEthanol();
-    co2 = SCD41Sensor::getCO2();
-    pm1_0 = PMS7003Sensor::getPM1_0();
-    pm2_5 = PMS7003Sensor::getPM2_5();
-    pm10 = PMS7003Sensor::getPM10();
-    aqi = calculateAQI(pm2_5, pm10);
+    
+    // Update PMS7003 sensor
+    if (PMS7003Sensor::read()) {
+        pm1_0 = PMS7003Sensor::getPM1_0();
+        pm2_5 = PMS7003Sensor::getPM2_5();
+        pm10 = PMS7003Sensor::getPM10();
+        aqi = calculateAQI(pm2_5, pm10);
+        lastSuccessfulRead = millis();
+    } else {
+        allSensorsWorking = false;
+    }
+    
+    // If all sensors are working, update the last successful read time
+    if (allSensorsWorking) {
+        lastSuccessfulRead = millis();
+    }
 }
 
 void Scheduler::run() {
+    // Check for reboot conditions
+    checkAndReboot();
+    
     unsigned long now = millis();
 
     // Handle connection retries
@@ -212,4 +239,44 @@ bool Scheduler::isOledOn() {
 // Interrupt Service Routine (ISR) for button press
 void IRAM_ATTR handleButtonPress() {
     Scheduler::setOledToggleRequested();
+}
+
+void Scheduler::checkAndReboot() {
+    unsigned long currentTime = millis();
+    
+    // Check for scheduled reboot (every 6 hours)
+    if (currentTime - lastReboot >= SCHEDULED_REBOOT_INTERVAL) {
+        Serial.println("Performing scheduled reboot...");
+        performReboot();
+        return;
+    }
+    
+    // Check for emergency reboot (no readings for 5 minutes)
+    if (currentTime - lastSuccessfulRead >= EMERGENCY_REBOOT_TIMEOUT) {
+        Serial.println("No sensor readings for 5 minutes, performing emergency reboot...");
+        performReboot();
+        return;
+    }
+}
+
+void Scheduler::performReboot() {
+    // Try to send a message to MQTT before rebooting
+    if (mqttEnabled) {
+        MQTTClient::publish("homeassistant/sensor/esp32_status/state", "rebooting");
+        delay(1000);  // Give time for the message to be sent
+    }
+    
+    // Clean up
+    if (mqttEnabled) {
+        MQTTClient::disconnect();
+    }
+    
+    // Display reboot message on OLED if it's on
+    if (oledOn) {
+        OLEDDisplay::update(temperatureF, humidity, co2, pm1_0, pm2_5, pm10, aqi, tvoc, h2, ethanol);
+        delay(1000);
+    }
+    
+    // Perform the reboot
+    ESP.restart();
 } 
