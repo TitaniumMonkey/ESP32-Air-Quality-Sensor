@@ -31,7 +31,7 @@ void OLEDDisplay::update(float temperatureF, float humidity, int co2,
     display.print("PM: ");
     display.print(pm1_0); display.print("/");
     display.print(pm2_5); display.print("/");
-    display.print(pm10); display.println(" ug/m3");
+    display.print(pm10); display.println(" ug");
     display.print("AQI: "); display.println(aqi);
     display.print("TVOC: "); display.print(tvoc, 0); display.println(" ppb");
     display.print("H2: "); display.print(h2, 0); display.println(" res");
