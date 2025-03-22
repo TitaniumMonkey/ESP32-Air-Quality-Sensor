@@ -17,13 +17,12 @@ void OLEDDisplay::init() {
 void OLEDDisplay::update(float temperatureF, float humidity, int co2, 
                         int pm1_0, int pm2_5, int pm10, int aqi, 
                         float tvoc, float h2, float ethanol) {
+    if (!isOledOn()) {
+        return;  // Don't do anything if display is off
+    }
+
     display.clearDisplay();
     display.setCursor(0, 0);
-
-    if (!isOledOn()) {
-        display.display();
-        return;
-    }
 
     // Format and display sensor data
     display.print("Temp: "); display.print(temperatureF, 1); display.println(" F");
