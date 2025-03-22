@@ -174,8 +174,8 @@ CO2:  674 ppm
 PM:  81 / 121 / 126 ug/m3
 AQI:  184
 TVOC: 30 ppb
-H2: 10000 ppb
-Ethanol: 13000 ppb
+H2: 10000 res
+Ethanol: 13000 res
 ```
 
 ## Troubleshooting
