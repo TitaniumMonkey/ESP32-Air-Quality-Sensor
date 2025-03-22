@@ -1,11 +1,10 @@
-#include "sensors/bme680_sensor.h"
-#include "sensors/scd41_sensor.h"
-#include "sensors/pms7003_sensor.h"
-#include "lib/scheduler.h"
-#include "lib/wifi_manager.h"
-#include "lib/mqtt_client.h"
-#include "lib/oled_display.h"
-#include "lib/enhanced_aqi.h"
+#include "include/sensors/sgp30_sensor.h"
+#include "include/sensors/scd41_sensor.h"
+#include "include/sensors/pms7003_sensor.h"
+#include "include/lib/scheduler.h"
+#include "include/lib/wifi_manager.h"
+#include "include/lib/mqtt_client.h"
+#include "include/lib/oled_display.h"
 #include "secrets.h"
 
 void setup() {
