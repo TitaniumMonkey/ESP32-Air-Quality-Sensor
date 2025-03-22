@@ -16,7 +16,7 @@ private:
 
 public:
     static void begin();
-    static void read();
+    static bool read();
     static bool hasNewData();
     static int getPM1_0();
     static int getPM2_5();
