@@ -7,23 +7,23 @@
 
 ## Overview
 This project is an **ESP32-based Air Quality Monitoring System** that measures and reports environmental data, including:
-- **Temperature & Humidity** (BME680)
+- **Temperature & Humidity** (GY-SGP30)
 - **CO₂ Levels** (SCD41)
 - **Particulate Matter (PM1.0, PM2.5, PM10)** (PMS7003)
 - **Air Quality Index (AQI)** (Calculated from PM data)
-- **Barometric Pressure & Altitude** (BME680)
+- **TVOC, Hydrogen, Ethenol** (GY-SGP30)
 
 The collected data is displayed on an **SSD1306 OLED screen** and published to an **MQTT broker** every **1 minute** for integration with platforms like **Home Assistant**.
 
 ## Features
 
 ### Sensor Capabilities
-- Temperature, Humidity, and Pressure monitoring (BME680)
+- Temperature and Humidity monitoring (GY-SGP30)
 - CO2 level monitoring (SCD41)
 - Particulate Matter monitoring (PMS7003)
-  - PM1.0, PM2.5, and PM10 measurements
+- PM1.0, PM2.5, and PM10 measurements
+- Total volatile organic compounds(TVOC) including Hydrogen and Ethenol (GY-SGP30)
 - Standard AQI calculation
-- Enhanced AQI calculation using multiple sensor inputs
 
 ### Display and Controls
 - OLED Display showing real-time sensor readings
@@ -47,25 +47,6 @@ The collected data is displayed on an **SSD1306 OLED screen** and published to a
 - MQTT publishing to Home Assistant when connected
 - Automatic sensor discovery in Home Assistant
 
-## Enhanced AQI Calculation
-The **Enhanced Air Quality Index (EAQI)** improves upon the traditional AQI by incorporating additional environmental parameters beyond just particulate matter. While the standard AQI primarily accounts for PM2.5 and PM10 levels, EAQI integrates:
-- **VOC Measurements** from the BME680 gas sensor.
-- **CO₂ Levels** from the SCD41 to assess indoor air quality and ventilation.
-- **Temperature & Humidity Adjustments**, which influence pollutant impact and comfort levels.
-
-### How EAQI is Calculated
-1. **Particulate Matter AQI (PM_AQI)**: Derived using EPA's AQI formula from PM2.5 and PM10 levels.
-2. **VOC AQI (VOC_AQI)**: Calculated from BME680 gas resistance values, mapped to an AQI-like scale.
-3. **CO₂ AQI (CO2_AQI)**: Converts CO₂ ppm levels into an AQI scale.
-4. **Final EAQI Value**: The **highest** of PM_AQI, VOC_AQI, or CO2_AQI determines the overall Enhanced AQI, ensuring that the most critical pollutant drives the air quality warning.
-
-This method provides a more comprehensive measure of air quality, reflecting real-world conditions where multiple factors contribute to air pollution and health risks.
-
-- Reads air quality data from **SCD41 (CO₂)**, **PMS7003 (PM1.0, PM2.5, PM10)**, and **BME680 (Temperature, Humidity, Pressure)**
-- Displays real-time data on a **0.96-inch SSD1306 OLED**
-- Publishes sensor data to an **MQTT broker** for smart home automation
-- Computes **Air Quality Index (AQI)** based on PM data
-
 
 ## Project Structure
 
@@ -83,7 +64,7 @@ This method provides a more comprehensive measure of air quality, reflecting rea
 │   ├── 📄 `wifi_manager.h`       # Manages Wi-Fi connection
 
 └── 📁 `sensor`                   # Source files implementing component logic
-    ├── 📄 `bme680_sensor.h`      # Implements BME680 sensor reading
+    ├── 📄 `sgp30_sensor.h`      # Implements SGP30 sensor reading
     ├── 📄 `scd41_sensor.h`       # Implements SCD41 sensor reading
     ├── 📄 `pms7003_sensor.h`     # Implements PMS7003 sensor reading
 ```
@@ -92,7 +73,7 @@ This method provides a more comprehensive measure of air quality, reflecting rea
 | Component             | Description                    |
 |----------------------|--------------------------------|
 | **ESP32 Dev Board**  | Wi-Fi-enabled microcontroller |
-| **BME680 Sensor**    | Measures temperature, humidity, pressure, and gas resistance |
+| **SGP30 Sensor**    | Measures temperature, humidity, TVOC, H2 & Ethenol |
 | **SCD41 Sensor**     | Measures CO₂ concentration |
 | **PMS7003 Sensor**   | Measures particulate matter (PM1.0, PM2.5, PM10) |
 | **SSD1306 OLED**     | 0.96-inch I2C OLED screen |
@@ -102,7 +83,7 @@ This method provides a more comprehensive measure of air quality, reflecting rea
 Install the following libraries in **Arduino IDE**:
 1. **WiFi** (Built-in for ESP32)
 2. **PubSubClient** (by Nick O'Leary)
-3. **Adafruit BME680** (by Adafruit)
+3. **Adafruit SGP30 Sensor** (by Adafruit)
 4. **Adafruit GFX Library** (by Adafruit)
 5. **Adafruit SSD1306** (by Adafruit)
 6. **SparkFun SCD4x Arduino Library** (for SCD41 sensor)
@@ -136,8 +117,8 @@ Install the following libraries in **Arduino IDE**:
 |-----------|--------|-------------|
 | 3.3V      | All Sensors | Power Supply |
 | GND       | All Sensors | Ground |
-| GPIO21    | SDA (OLED, BME680, SCD41) | I2C Data |
-| GPIO22    | SCL (OLED, BME680, SCD41) | I2C Clock |
+| GPIO21    | SDA (OLED, SGP30, SCD41) | I2C Data |
+| GPIO22    | SCL (OLED, SGP30, SCD41) | I2C Clock |
 | GPIO14    | RX (PMS7003) | UART Receive |
 | GPIO27    | TX (PMS7003) | UART Transmit |
 
@@ -178,10 +159,12 @@ Before uploading the code, create a `secrets.h` file next to your `.ino` file wi
 ```
 Temp:  70.97 F
 Humidity:  34.05 %
-Pressure: 1019.20 hPa
 CO2:  674 ppm
 PM:  81 / 121 / 126 ug/m3
 AQI:  184
+TVOC: 30 ppb
+H2: 10000 ppb
+Ethanol: 13000 ppb
 ```
 
 ## Troubleshooting
