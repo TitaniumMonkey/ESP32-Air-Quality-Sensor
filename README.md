@@ -52,21 +52,32 @@ The collected data is displayed on an **SSD1306 OLED screen** and published to a
 
 ```
 📁 **ESP32_Air_Quality_Sensor**
-├── 📄 `sketch.ino`               # Main entry point.
+├── 📄 `sketch.ino`               # Main entry point
 ├── 📄 `README.md`                # Project documentation
 ├── 📄 `secrets.h`                # Wi-Fi & MQTT credentials (template included but must be updated)
 ├── 📄 `LICENSE`                  # License file
-├── 📁 `lib`                      # Library files for modular components
-│   ├── 📄 `mqtt_client.h`        # MQTT connection management
-│   ├── 📄 `oled_display.h`       # OLED display control
-│   ├── 📄 `scheduler.h`          # Task scheduling
-│   ├── 📄 `enhanced_aqi.h`       # Enhanced AQI calculation
-│   ├── 📄 `wifi_manager.h`       # Manages Wi-Fi connection
-
-└── 📁 `sensor`                   # Source files implementing component logic
-    ├── 📄 `sgp30_sensor.h`      # Implements SGP30 sensor reading
-    ├── 📄 `scd41_sensor.h`       # Implements SCD41 sensor reading
-    ├── 📄 `pms7003_sensor.h`     # Implements PMS7003 sensor reading
+├── 📁 `include`                  # Header files (.h)
+│   ├── 📁 `lib`                  # Library component headers
+│   │   ├── 📄 `mqtt_client.h`    # MQTT connection management
+│   │   ├── 📄 `oled_display.h`   # OLED display control
+│   │   ├── 📄 `scheduler.h`      # Task scheduling
+│   │   ├── 📄 `enhanced_aqi.h`   # Enhanced AQI calculation
+│   │   └── 📄 `wifi_manager.h`   # Manages Wi-Fi connection
+│   └── 📁 `sensors`              # Sensor headers
+│       ├── 📄 `sgp30_sensor.h`   # SGP30 sensor interface
+│       ├── 📄 `scd41_sensor.h`   # SCD41 sensor interface
+│       └── 📄 `pms7003_sensor.h` # PMS7003 sensor interface
+└── 📁 `src`                      # Implementation files (.cpp)
+    ├── 📁 `lib`                  # Library component implementations
+    │   ├── 📄 `mqtt_client.cpp`  # MQTT connection implementation
+    │   ├── 📄 `oled_display.cpp` # OLED display implementation
+    │   ├── 📄 `scheduler.cpp`    # Task scheduling implementation
+    │   ├── 📄 `enhanced_aqi.cpp` # Enhanced AQI implementation
+    │   └── 📄 `wifi_manager.cpp` # Wi-Fi management implementation
+    └── 📁 `sensors`              # Sensor implementations
+        ├── 📄 `sgp30_sensor.cpp` # SGP30 sensor implementation
+        ├── 📄 `scd41_sensor.cpp` # SCD41 sensor implementation
+        └── 📄 `pms7003_sensor.cpp` # PMS7003 sensor implementation
 ```
 
 ## Components Used
