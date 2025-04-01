@@ -171,7 +171,7 @@ Before uploading the code, create a `secrets.h` file next to your `.ino` file wi
 Temp:  70.97 F
 Humidity:  34.05 %
 CO2:  674 ppm
-PM:  81 / 121 / 126 ug/m3
+PM:  81 / 121 / 126 ug
 AQI:  184
 TVOC: 30 ppb
 H2: 10000 res
